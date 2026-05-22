@@ -3,63 +3,319 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Employee Log Book</title>
-  <link rel="stylesheet" href="style.css">
+  <title>TMTC | Employee Log Book</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --success: #059669;
+      --danger: #dc2626;
+      --slate: #475569;
+      --bg: #f8fafc;
+      --white: #ffffff;
+      --radius: 16px;
+      --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+    body {
+      background-color: var(--bg);
+      color: #1e293b;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* --- Navigation & Header --- */
+    header {
+      background: var(--white);
+      padding: 1.5rem 2rem;
+      border-bottom: 1px solid #e2e8f0;
+      box-shadow: var(--shadow);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    header h1 { font-size: 1.25rem; font-weight: 800; color: #0f172a; }
+
+    nav { display: flex; gap: 8px; background: #f1f5f9; padding: 5px; border-radius: 12px; }
+    
+    nav button {
+      padding: 10px 18px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: 0.2s;
+      color: var(--slate);
+      background: transparent;
+    }
+
+    nav button.active { background: var(--white); color: var(--primary); box-shadow: var(--shadow); }
+
+    /* --- Main Sections --- */
+    main { flex: 1; padding: 2rem; max-width: 1200px; margin: 0 auto; width: 100%; }
+    .tab-section { animation: fadeIn 0.3s ease-in-out; }
+    .hidden { display: none; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    h2 { margin-bottom: 1.5rem; font-weight: 800; color: #0f172a; }
+
+    /* --- Employee Grids --- */
+    .employee-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 12px;
+    }
+
+    .emp-card {
+      background: var(--white);
+      padding: 2rem 1rem;
+      text-align: center;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      transition: 0.2s;
+      border: 2px solid transparent;
+      font-weight: 700;
+      color: var(--slate);
+    }
+
+    .emp-card:hover { transform: translateY(-4px); box-shadow: 0 15px 25px -5px rgba(0,0,0,0.08); border-color: var(--primary); }
+    .emp-card:active { transform: scale(0.95); }
+
+    /* --- Admin Panel Components --- */
+    .admin-card { background: white; padding: 2rem; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 2rem; }
+    
+    #addEmployeeForm { display: flex; gap: 10px; margin-bottom: 2rem; }
+    input { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; outline: none; }
+    input:focus { border-color: var(--primary); }
+    
+    button[type="submit"], #exportCSV { 
+      background: var(--primary); color: white; border: none; padding: 12px 24px; 
+      border-radius: 8px; font-weight: 700; cursor: pointer; 
+    }
+
+    /* --- Table Design --- */
+    .table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid #e2e8f0; margin: 1rem 0; }
+    table { width: 100%; border-collapse: collapse; background: white; }
+    th { background: #f8fafc; padding: 14px; text-align: left; font-size: 0.75rem; text-transform: uppercase; color: var(--slate); }
+    td { padding: 14px; border-top: 1px solid #f1f5f9; font-size: 0.9rem; }
+
+    /* --- Toast --- */
+    .toast {
+      position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+      background: #0f172a; color: white; padding: 14px 28px; border-radius: 12px;
+      font-weight: 600; box-shadow: 0 10px 25px rgba(0,0,0,0.2); z-index: 1000;
+      transition: 0.3s;
+    }
+
+    .status-in { color: var(--success); font-weight: 800; }
+    .status-out { color: var(--slate); font-weight: 800; }
+    .del-btn { color: var(--danger); cursor: pointer; border: none; background: none; font-size: 0.8rem; }
+
+    @media (max-width: 600px) { .employee-grid { grid-template-columns: repeat(2, 1fr); } }
+  </style>
 </head>
 <body>
+
   <header>
-    <h1>Employee Log Book</h1>
+    <h1>The Manila Time College</h1>
     <nav>
-      <button id="checkInTab">Check-In</button>
+      <button id="checkInTab" class="active">Check-In</button>
       <button id="checkOutTab">Check-Out</button>
       <button id="adminTab">Admin Panel</button>
     </nav>
   </header>
 
   <main>
-    <!-- Check-In Section -->
     <section id="checkInSection" class="tab-section">
-      <h2>Check-In</h2>
+      <h2>Select Name to Check-In</h2>
       <div id="checkInGrid" class="employee-grid"></div>
     </section>
 
-    <!-- Check-Out Section -->
     <section id="checkOutSection" class="tab-section hidden">
-      <h2>Check-Out</h2>
+      <h2>Select Name to Check-Out</h2>
       <div id="checkOutGrid" class="employee-grid"></div>
     </section>
 
-    <!-- Admin Panel -->
     <section id="adminSection" class="tab-section hidden">
-      <h2>Admin Panel</h2>
-      <form id="addEmployeeForm">
-        <input type="text" id="employeeName" placeholder="Employee Name" required>
-        <button type="submit">Add Employee</button>
-      </form>
+      <div class="admin-card">
+        <h2>Manage Employees</h2>
+        <form id="addEmployeeForm">
+          <input type="text" id="employeeName" placeholder="Type Employee Name..." required>
+          <button type="submit">Add to List</button>
+        </form>
+        <ul id="employeeList" style="list-style: none; display: flex; flex-wrap: wrap; gap: 8px;"></ul>
+      </div>
 
-      <h3>Employee List</h3>
-      <ul id="employeeList"></ul>
-
-      <h3>Log Records</h3>
-      <table id="logTable">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Date</th>
-            <th>Time In</th>
-            <th>Time Out</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-      <button id="exportCSV">Export to CSV</button>
+      <div class="admin-card">
+        <h3>Attendance Log Records</h3>
+        <div class="table-wrap">
+          <table id="logTable">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Date</th>
+                <th>Time In</th>
+                <th>Time Out</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <button id="exportCSV">Export to CSV</button>
+      </div>
     </section>
   </main>
 
-  <!-- Toast Notification -->
   <div id="toast" class="toast hidden"></div>
 
-  <script src="script.js"></script>
+  <script>
+    // --- Data Management ---
+    let employees = JSON.parse(localStorage.getItem('tmtc_employees')) || ["Juan Dela Cruz", "Maria Clara"];
+    let logs = JSON.parse(localStorage.getItem('tmtc_logs')) || [];
+
+    // --- Tab Logic ---
+    const tabs = {
+      'checkInTab': 'checkInSection',
+      'checkOutTab': 'checkOutSection',
+      'adminTab': 'adminSection'
+    };
+
+    Object.keys(tabs).forEach(tabId => {
+      document.getElementById(tabId).addEventListener('click', () => {
+        // Toggle Buttons
+        Object.keys(tabs).forEach(id => document.getElementById(id).classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        
+        // Toggle Sections
+        Object.values(tabs).forEach(secId => document.getElementById(secId).classList.add('hidden'));
+        document.getElementById(tabs[tabId]).classList.remove('hidden');
+        
+        renderAll();
+      });
+    });
+
+    // --- Core Functions ---
+    function renderAll() {
+      renderGrids();
+      renderEmployeeList();
+      renderLogs();
+    }
+
+    function renderGrids() {
+      const inGrid = document.getElementById('checkInGrid');
+      const outGrid = document.getElementById('checkOutGrid');
+      
+      const gridContent = (isCheckIn) => employees.map(name => `
+        <div class="emp-card" onclick="handleLog('${name}', ${isCheckIn})">
+          ${name}
+        </div>
+      `).join('');
+
+      inGrid.innerHTML = gridContent(true);
+      outGrid.innerHTML = gridContent(false);
+    }
+
+    function handleLog(name, isCheckIn) {
+      const now = new Date();
+      const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const date = now.toLocaleDateString();
+
+      if (isCheckIn) {
+        // Check if already checked in today without checking out
+        const existing = logs.find(l => l.name === name && l.date === date && !l.timeOut);
+        if (existing) return showToast(`${name} is already checked in.`);
+        
+        logs.push({ name, date, timeIn: time, timeOut: null });
+      } else {
+        const entry = logs.slice().reverse().find(l => l.name === name && !l.timeOut);
+        if (!entry) return showToast(`${name} needs to Check-In first.`);
+        entry.timeOut = time;
+      }
+
+      saveAndRefresh();
+      showToast(`${name} ${isCheckIn ? 'Checked-In' : 'Checked-Out'} at ${time}`);
+    }
+
+    function renderEmployeeList() {
+      const list = document.getElementById('employeeList');
+      list.innerHTML = employees.map((name, i) => `
+        <li style="background:#f1f5f9; padding:5px 12px; border-radius:20px; font-size:0.85rem; font-weight:600;">
+          ${name} <span onclick="removeEmployee(${i})" style="color:red; cursor:pointer; margin-left:5px;">&times;</span>
+        </li>
+      `).join('');
+    }
+
+    function renderLogs() {
+      const tbody = document.querySelector('#logTable tbody');
+      tbody.innerHTML = logs.slice().reverse().map((l, i) => `
+        <tr>
+          <td><b>${l.name}</b></td>
+          <td>${l.date}</td>
+          <td class="status-in">${l.timeIn}</td>
+          <td class="status-out">${l.timeOut || '--:--'}</td>
+          <td><button class="del-btn" onclick="deleteLog(${logs.length - 1 - i})">Delete</button></td>
+        </tr>
+      `).join('');
+    }
+
+    // --- Admin Actions ---
+    document.getElementById('addEmployeeForm').onsubmit = (e) => {
+      e.preventDefault();
+      const input = document.getElementById('employeeName');
+      if (!employees.includes(input.value)) {
+        employees.push(input.value);
+        input.value = '';
+        saveAndRefresh();
+      }
+    };
+
+    function removeEmployee(index) {
+      if (confirm("Remove employee from list?")) {
+        employees.splice(index, 1);
+        saveAndRefresh();
+      }
+    }
+
+    function deleteLog(index) {
+      logs.splice(index, 1);
+      saveAndRefresh();
+    }
+
+    function saveAndRefresh() {
+      localStorage.setItem('tmtc_employees', JSON.stringify(employees));
+      localStorage.setItem('tmtc_logs', JSON.stringify(logs));
+      renderAll();
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.innerText = msg;
+      t.classList.remove('hidden');
+      setTimeout(() => t.classList.add('hidden'), 3000);
+    }
+
+    document.getElementById('exportCSV').onclick = () => {
+      let csv = "Name,Date,Time In,Time Out\n";
+      logs.forEach(l => csv += `${l.name},${l.date},${l.timeIn},${l.timeOut || 'N/A'}\n`);
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `TMTC_Logs_${new Date().toLocaleDateString()}.csv`;
+      a.click();
+    };
+
+    // Initial Run
+    renderAll();
+  </script>
 </body>
 </html>
